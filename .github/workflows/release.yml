@@ -26,7 +26,7 @@ jobs:
       - name: Build .app bundle
         run: |
           pyinstaller \
-            --onefile \
+            --onedir \
             --windowed \
             --name "PDF-to-Excel-Converter" \
             pdf_to_excel_converter.py
@@ -34,7 +34,7 @@ jobs:
       - name: Zip the .app
         run: |
           cd dist
-          zip -r "../PDF-to-Excel-Converter-macOS.zip" "PDF-to-Excel-Converter"
+          zip -r "../PDF-to-Excel-Converter-macOS.zip" "PDF-to-Excel-Converter.app"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -95,7 +95,7 @@ jobs:
             | Platform | File |
             |----------|------|
             | Windows  | `PDF-to-Excel-Converter.exe` |
-            | macOS    | `PDF-to-Excel-Converter-macOS.zip` (unzip → double-click) |
+            | macOS    | `PDF-to-Excel-Converter-macOS.zip` (unzip → double-click to open) |
 
             ### What's new
             <!-- describe changes here before tagging, or edit after release -->
