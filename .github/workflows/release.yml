@@ -1,0 +1,106 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"   # e.g. v1.0.0, v1.2.3
+
+permissions:
+  contents: write   # needed to create GitHub Releases
+
+jobs:
+  # ── macOS build ──────────────────────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller pdfplumber openpyxl tkinterdnd2
+
+      - name: Build .app bundle
+        run: |
+          pyinstaller \
+            --onefile \
+            --windowed \
+            --name "PDF-to-Excel-Converter" \
+            pdf_to_excel_converter.py
+
+      - name: Zip the .app
+        run: |
+          cd dist
+          zip -r "../PDF-to-Excel-Converter-macOS.zip" "PDF-to-Excel-Converter"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: PDF-to-Excel-Converter-macOS.zip
+
+  # ── Windows build ─────────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller pdfplumber openpyxl tkinterdnd2
+
+      - name: Build .exe
+        run: |
+          pyinstaller `
+            --onefile `
+            --windowed `
+            --name "PDF-to-Excel-Converter" `
+            pdf_to_excel_converter.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist\PDF-to-Excel-Converter.exe
+
+  # ── GitHub Release ────────────────────────────────────────────────────────────
+  release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "PDF → Excel Converter ${{ github.ref_name }}"
+          body: |
+            ## PDF → Excel Converter ${{ github.ref_name }}
+
+            Standalone desktop tool — no Python installation required.
+
+            ### Downloads
+            | Platform | File |
+            |----------|------|
+            | Windows  | `PDF-to-Excel-Converter.exe` |
+            | macOS    | `PDF-to-Excel-Converter-macOS.zip` (unzip → double-click) |
+
+            ### What's new
+            <!-- describe changes here before tagging, or edit after release -->
+          files: |
+            PDF-to-Excel-Converter.exe
+            PDF-to-Excel-Converter-macOS.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
