@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller pdfplumber openpyxl tkinterdnd2
+          pip install pyinstaller -r requirements.txt
 
       - name: Build .app bundle
         run: |
@@ -53,7 +53,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller pdfplumber openpyxl tkinterdnd2
+          pip install pyinstaller -r requirements.txt
 
       - name: Build .exe
         run: |
